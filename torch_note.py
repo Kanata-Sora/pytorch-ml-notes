@@ -49,4 +49,4 @@ norm_t1 = torch.linalg.norm(t1, ord=2, dim=1)
 #ord=2: ノルムの種類：L2ノルム（二乗和の平方根）**を指定
 #dim=1: 列方向（横）
 print(norm_t1)
-print(t4)
+print(t5)
