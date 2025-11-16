@@ -1,7 +1,8 @@
 import torch 
 import numpy as np
 np.set_printoptions(precision=3)
-'''
+#----------------------------------------
+#p352
 a = [1,2,3]
 b = np.array([4, 5, 6], dtype=np.int32)
 t_a = torch.tensor(a)
@@ -12,9 +13,10 @@ print(t_a)
 print(t_b)
 
 t_ones = torch.ones(2, 3)
-t_ones.shape
+print(t_ones.shape)
+#.shapeで何行何列か見る
 print(t_ones)
-'''
+
 #------------------------------------#
 #p353
 t = torch.rand(3, 5)
@@ -33,6 +35,7 @@ torch.manual_seed(1)
 #乱数を固定
 t1 = 2 * torch.rand(5, 2) -1
 t2 = torch.normal(mean=0, std=1, size=(5, 2))
+#「平均0、標準偏差1の正規分布」からランダムな値を取り出し、形状(5,2)のテンソルを生成する
 
 t3 = torch.multiply(t1, t2)
 #二つの行列の積を取っているのではなく、要素ごとに掛け算を行っている
@@ -50,3 +53,31 @@ norm_t1 = torch.linalg.norm(t1, ord=2, dim=1)
 #dim=1: 列方向（横）
 print(norm_t1)
 print(t5)
+
+#--------------------------------------
+#121.2.5
+torch.manual_seed(1)
+t = torch.rand(6)
+print(t)
+t_splits = torch.chunk(t,3)
+#テンソルを3つに分割
+print(t_splits)
+print([item.numpy() for item in t_splits])
+
+
+t = torch.rand(5)
+print(t)
+t_splits = torch.split(t, split_size_or_sections= [3,2])
+print([item.numpy() for item in t_splits])
+#--------------------------------------
+A = torch.ones(3)
+B = torch.zeros(2)
+C = torch.cat([A,B], axis=0)
+print(C)
+
+A = torch.ones(3)
+B = torch.zeros(3)
+S = torch.stack([A, B], axis=1)
+print(S)
+#axis=0:０番目（行）の次元で合体
+#axis=1:１番目（列）の次元で合体
