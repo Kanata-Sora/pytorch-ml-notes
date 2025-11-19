@@ -89,6 +89,7 @@ t_x = torch.rand([4,3], dtype=torch.float32) #特徴慮
 t_y = torch.arange(4) #クラスラベル
 
 from torch.utils.data import Dataset 
+
 class JointDataset(Dataset):
     def __init__(self, x, y):
         self.x = x
@@ -102,6 +103,7 @@ self は「自分自身（今扱っているそのオブジェクト）」を指
 にアクセスするために使う“鍵”。
        
         '''
+        
     def __len__(self):
         return len(self.x)
     
