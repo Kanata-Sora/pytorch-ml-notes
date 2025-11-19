@@ -89,6 +89,7 @@ t_x = torch.rand([4,3], dtype=torch.float32) #特徴慮
 t_y = torch.arange(4) #クラスラベル
 
 from torch.utils.data import Dataset 
+
 class JointDataset(Dataset):
     def __init__(self, x, y):
         self.x = x
