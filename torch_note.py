@@ -81,3 +81,39 @@ S = torch.stack([A, B], axis=1)
 print(S)
 #axis=0:０番目（行）の次元で合体
 #axis=1:１番目（列）の次元で合体
+#------------------------------------------
+#12.3.2
+#p357
+torch.manual_seed(1)
+t_x = torch.rand([4,3], dtype=torch.float32) #特徴慮
+t_y = torch.arange(4) #クラスラベル
+
+from torch.utils.data import Dataset 
+class JointDataset(Dataset):
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+        '''
+self は「自分自身（今扱っているそのオブジェクト）」を指す特別な変数
+もっと言うと、
+自分の持っているデータ（属性）
+自分が呼べる関数（メソッド）
+にアクセスするために使う“鍵”。
+       
+        '''
+    def __len__(self):
+        return len(self.x)
+    
+    def __getitem__(self,idx):
+        return self.x[idx], self.y[idx]
+    #idxはデータの番号
+    '''
+    クラスを定義する意義は、
+「データ（状態）と、それを扱う処理（機能）をひとまとめにして、
+1つの“オブジェクト”として扱えるようにすること」
+    '''
+joint_dataset = JointDataset(t_x, t_y)
+
+for example in joint_dataset:
+    print(' x: ', example[0], ' y: ', example[1])
