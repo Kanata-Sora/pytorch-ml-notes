@@ -115,5 +115,6 @@ self は「自分自身（今扱っているそのオブジェクト）」を指
     '''
 joint_dataset = JointDataset(t_x, t_y)
 
+
 for example in joint_dataset:
     print(' x: ', example[0], ' y: ', example[1])
