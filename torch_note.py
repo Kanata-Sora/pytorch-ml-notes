@@ -186,5 +186,25 @@ for i, example in enumerate(image_dataset):
     ax.imshow(example[0].numpy().transpose((1,2,0)))
     ax.set_title(f'{example[1]}', size=15)
 
+
 plt.tight_layout()
+plt.show()
+#----------------------------------------------------
+#p367
+from itertools import islice
+import torchvision 
+
+image_path = './'
+mnist_dataset = torchvision.datasets.MNIST(image_path, 'train', download=True)
+assert isinstance(mnist_dataset, torch.utils.data.Dataset)
+example = next(iter(mnist_dataset))
+print(example)
+
+fig = plt.figure(figsize=(15, 6))
+for i, (image,label) in islice(enumerate(mnist_dataset), 10):
+    ax = fig.add_subplot(2, 5, i+1)
+    ax.set_xticks([]); ax.set_yticks([])
+    ax.imshow(image, cmap='gray_r')
+    ax.set_title(f'{label}', size=15)
+
 plt.show()
