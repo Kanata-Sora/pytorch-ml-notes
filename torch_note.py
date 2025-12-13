@@ -208,3 +208,41 @@ for i, (image,label) in islice(enumerate(mnist_dataset), 10):
     ax.set_title(f'{label}', size=15)
 
 plt.show()
+
+#-----------------------------------------------------------
+#p369
+from torch.utils.data import TensorDataset
+X_train_norm = (X_train -np.mean(X_train)) / np.std(X_train)
+X_train_norm = torch.from_numpy(X_train_norm)
+Y_train = torch.from_numpy(Y_train).float()
+train_ds = TensorDataset(X_train_norm, Y_train)
+batch_size = 1
+train_d1 = DataLoader(train_ds, batch_size, shuffle=True)
+
+torch.manual_seed(1)
+weight = torch.randn(1)
+
+weight.requires_grad_()
+bias = torch.zeros(1, requires_grad=True)
+def model(xb):
+    return xb @ weight + bias
+
+def loss_fn(input, target):
+    return (input-target).pow(2).mean()
+
+learning_rate = 0.001
+num_epochs = 200 
+log_epochs = 10
+for epoch in range(num_epochs):
+    for x_batch, y_batch in train_d1:
+        pred = model(x_batch)
+        loss = loss_fn(pred, y_batch.long())
+        loss.backward()
+        with torch.no_grad():
+            weight -= weight.grad * learning_rate
+            bias -= bias.grad * learning_rate
+            weight.grad.zero_()
+            bias.grad.zero_()
+    
+    if epoch % log_epochs==0:
+        print(f'Epoch {epoch} Loss {loss.item():.4f}')
