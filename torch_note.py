@@ -89,6 +89,7 @@ t_x = torch.rand([4,3], dtype=torch.float32) #特徴慮
 t_y = torch.arange(4) #クラスラベル
 
 from torch.utils.data import Dataset 
+
 class JointDataset(Dataset):
     def __init__(self, x, y):
         self.x = x
@@ -102,6 +103,7 @@ self は「自分自身（今扱っているそのオブジェクト）」を指
 にアクセスするために使う“鍵”。
        
         '''
+        
     def __len__(self):
         return len(self.x)
     
@@ -118,3 +120,170 @@ joint_dataset = JointDataset(t_x, t_y)
 
 for example in joint_dataset:
     print(' x: ', example[0], ' y: ', example[1])
+#--------------------------------
+
+#p359 12.3.3
+from torch.utils.data import DataLoader 
+joint_dataset = JointDataset(t_x, t_y)
+
+data_loader = DataLoader(dataset=joint_dataset, batch_size=2, shuffle=True)
+for i, batch in enumerate(data_loader, 1):
+    print(f'batch {i}:', 'x:', batch[0], '\n       y:', batch[1])
+#---------------------------------
+#p360 12.3.4
+import pathlib 
+imgdir_path = pathlib.Path('cat_dog_images')
+file_list = sorted([str(path) for path in imgdir_path.glob('*.jpg')])
+print(file_list)
+
+import matplotlib.pyplot as plt
+import os 
+from PIL import Image
+
+fig = plt.figure(figsize=(10,5))
+for i, file in enumerate(file_list):
+    img = Image.open(file)
+    print('Image shape:',np.array(img).shape)
+    ax = fig.add_subplot(2, 3, i+1)
+    ax.set_xticks([]); ax.set_yticks([])
+    ax.imshow(img)
+    ax.set_title(os.path.basename(file),size=15)
+
+plt.tight_layout()
+plt.show()
+#----------------------------------
+#p362 
+
+import torchvision.transforms as transforms
+img_height, img_width = 80, 120 
+transform = transforms.Compose([transforms.ToTensor(),
+                                transforms.Resize((img_height, img_width)),])
+
+labels = [1 if 'dog' in os.path.basename(file) else 0 for file in file_list]
+
+class ImageDataset(Dataset):
+    
+    def __init__(self, file_list, labels, transform=None):
+        self.file_list =file_list
+        self.labels = labels
+        self.transform = transform
+
+    def __getitem__(self, index):
+        img = Image.open(self.file_list[index])
+        if self.transform is not None:
+            img = self.transform(img)
+        label = self.labels[index]
+        return img, label
+    
+    def __len__(self):
+        return len(self.labels)
+    
+image_dataset = ImageDataset(file_list, labels, transform)
+
+fig = plt.figure(figsize=(10, 6))
+for i, example in enumerate(image_dataset):
+    ax = fig.add_subplot(2, 3, i+1)
+    ax.set_xticks([]); ax.set_yticks([])
+    ax.imshow(example[0].numpy().transpose((1,2,0)))
+    ax.set_title(f'{example[1]}', size=15)
+
+
+plt.tight_layout()
+plt.show()
+#----------------------------------------------------
+#p367
+from itertools import islice
+import torchvision 
+
+image_path = './'
+mnist_dataset = torchvision.datasets.MNIST(image_path, 'train', download=True)
+assert isinstance(mnist_dataset, torch.utils.data.Dataset)
+example = next(iter(mnist_dataset))
+print(example)
+
+fig = plt.figure(figsize=(15, 6))
+for i, (image,label) in islice(enumerate(mnist_dataset), 10):
+    ax = fig.add_subplot(2, 5, i+1)
+    ax.set_xticks([]); ax.set_yticks([])
+    ax.imshow(image, cmap='gray_r')
+    ax.set_title(f'{label}', size=15)
+
+plt.show()
+
+#-----------------------------------------------------------
+#p369
+X_train = np.arange(10, dtype='float32').reshape((10, 1))
+Y_train = np.array([1.0, 1.3, 3.1, 2.0, 5.0, 6.3, 6.6, 7.4, 8.0, 9.0],dtype='float32')
+from torch.utils.data import TensorDataset
+X_train_norm = (X_train -np.mean(X_train)) / np.std(X_train)
+X_train_norm = torch.from_numpy(X_train_norm)
+Y_train = torch.from_numpy(Y_train).float()
+train_ds = TensorDataset(X_train_norm, Y_train)
+batch_size = 1
+train_d1 = DataLoader(train_ds, batch_size, shuffle=True)
+
+torch.manual_seed(1)
+weight = torch.randn(1)
+
+weight.requires_grad_()
+bias = torch.zeros(1, requires_grad=True)
+def model(xb):
+    return xb @ weight + bias
+
+def loss_fn(input, target):
+    return (input-target).pow(2).mean()
+
+learning_rate = 0.001
+num_epochs = 200 
+log_epochs = 10
+for epoch in range(num_epochs):
+    for x_batch, y_batch in train_d1:
+        pred = model(x_batch)
+        loss = loss_fn(pred, y_batch.long())
+        loss.backward()
+        with torch.no_grad():
+            weight -= weight.grad * learning_rate
+            bias -= bias.grad * learning_rate
+            weight.grad.zero_()
+            bias.grad.zero_()
+    
+    if epoch % log_epochs==0:
+        print(f'Epoch {epoch} Loss {loss.item():.4f}')
+#--------------------
+#p371
+print('Final Parameters:', weight.item(), bias.item())
+X_test = np.linspace(0, 9, num=100, dtype='float32').reshape(-1, 1)
+X_test_norm = (X_test - np.mean(X_train)) /np.std(X_train)
+X_test_norm = torch.from_numpy(X_test_norm)
+Y_pred = model(X_test_norm).detach().numpy()
+fig = plt.figure(figsize=(13, 5))
+ax = fig.add_subplot(1, 2, 1)
+plt.plot(X_train_norm, Y_train, 'o', markersize=10)
+plt.plot(X_test_norm, Y_pred, '--', lw=3)
+plt.legend(['training example', 'Linear reg.'], fontsize=15)
+ax.set_xlabel('x', size=15)
+ax.set_ylabel('y', size=15)
+ax.tick_params(axis='both',which='major', labelsize=15)
+plt.show()
+
+#----------------------------------------------------
+#p372
+import torch.nn as nn
+loss_fn = nn.MSELoss(reduction='mean')
+input_size = 1
+output_size = 1
+model = nn.Linear(input_size, output_size)
+optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)                                                                                                         
+
+for epoch in range(num_epochs):
+    for x_batch, y_batch in train_d1:
+        pred = model(x_batch)[:, 0]
+        loss = loss_fn(pred, y_batch)
+        loss.backward()                                                     
+        optimizer.step()
+        optimizer.zero_grad()
+
+    if epoch % log_epochs==0:
+        print(f'Epoch {epoch} Loss {loss.item():.4f}')
+
+print('Final Parameters:', model.weight.item(), model.bias.item())
