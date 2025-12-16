@@ -265,3 +265,24 @@ ax.set_ylabel('y', size=15)
 ax.tick_params(axis='both',which='major', labelsize=15)
 plt.show()
 
+#----------------------------------------------------
+#p372
+import torch.nn as nn
+loss_fn = nn.MSELoss(reduction='mean')
+input_size = 1
+output_size = 1
+model = nn.Linear(input_size, output_size)
+optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)                                                                                                         
+
+for epoch in range(num_epochs):
+    for x_batch, y_batch in train_d1:
+        pred = model(x_batch)[:, 0]
+        loss = loss_fn(pred, y_batch)
+        loss.backward()                                                     
+        optimizer.step()
+        optimizer.zero_grad()
+
+    if epoch % log_epochs==0:
+        print(f'Epoch {epoch} Loss {loss.item():.4f}')
+
+print('Final Parameters:', model.weight.item(), model.bias.item())
